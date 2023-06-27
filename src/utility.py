@@ -2,13 +2,14 @@ import cv2
 from moviepy.editor import VideoFileClip
 
 
-def video_writer_from_cap(path, cap, fourcc='RGBA'):
+def video_writer_from_cap(path, cap, fourcc='mp4v'):
     fps = cap.get(cv2.CAP_PROP_FPS)
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
     fourcc = cv2.VideoWriter_fourcc(*fourcc)
     writer = cv2.VideoWriter(path, fourcc, fps, (width, height))
+    writer.set(cv2.VIDEOWRITER_PROP_QUALITY, 1.0)
 
     return writer
 

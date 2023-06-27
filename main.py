@@ -41,7 +41,7 @@ def process_file(config_path, input_path, output_path, remove_tmp=True):
     remove_processors = RemoveProcessors.from_config(config)
 
     cap = cv2.VideoCapture(input_path)
-    tmp_output_path = f'{noext}-TMP-{MAGIC_NUMBER}.avi'
+    tmp_output_path = f'{noext}-TMP-{MAGIC_NUMBER}.mp4'
     writer = video_writer_from_cap(tmp_output_path, cap)
 
     remove_processors.process_cap(writer, cap, affine, qrcode, release=True)
