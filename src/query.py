@@ -33,10 +33,11 @@ class SiftQueryProcessor:
 
     def __init__(
         self, query: SiftImage, mask,
-            min_match=5, knn_ratio=0.7, min_similarity=None,
+            min_match=5, knn_ratio=0.7,
+            min_similarity=None,
             min_scale=None, max_scale=None,
-            pre_frame_num=0, post_frame_num=0,
             max_translation=None, max_rotation=None,
+            pre_frame_num=0, post_frame_num=0,
             remove_features=True):
 
         self.matcher = cv2.BFMatcher()
