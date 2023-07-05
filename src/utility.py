@@ -1,3 +1,4 @@
+import math
 import cv2
 from moviepy.editor import VideoFileClip
 
@@ -32,3 +33,25 @@ def add_audio_to_video(
     silent_video.close()
     video.close()
     return audio
+
+
+def decompose_affine(affine):
+    # https://frederic-wang.fr/decomposition-of-2d-transform-matrices.html
+    # skew scale rotate translate
+    [[a, c, e], [b, d, f]] = affine
+    delta = a * d - b * c
+    if a != 0 or b != 0:
+        r = math.sqrt(a * a + b * b)
+        rotation = math.acos(a / r) if b > 0 else -math.acos(a / r)
+        scale = [r, delta / r]
+        skew = [math.atan((a * c + b * d) / (r * r)), 0]
+    elif c != 0 or d != 0:
+        s = math.sqrt(c * c + d * d)
+        rotation = math.pi / 2 - \
+            (math.acos(-c / s) if d > 0 else -math.acos(c / s))
+        scale = [delta / s, s]
+        skew = [0, math.atan((a * c + b * d) / (s * s))]
+    else:
+        return [0, 0], [0, 0], 0, [0, 0]
+
+    return skew, scale, rotation, [e, f]

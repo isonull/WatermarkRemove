@@ -1,5 +1,7 @@
 import json
 from pyzbar import pyzbar
+
+from .utility import decompose_affine
 from .sift import SiftImage, sift_image_and_mask_from_png
 import cv2
 import numpy as np
@@ -31,20 +33,30 @@ class SiftQueryProcessor:
 
     def __init__(
         self, query: SiftImage, mask,
-            min_match=5, knn_ratio=0.5, min_similarity=None,
-            min_scale=0.01, max_scale=100.0, remove_features=True,
-            pre_frame_num=0, post_frame_num=0):
+            min_match=5, knn_ratio=0.7, min_similarity=None,
+            min_scale=None, max_scale=None,
+            pre_frame_num=0, post_frame_num=0,
+            max_translation=None, max_rotation=None,
+            remove_features=True):
+
         self.matcher = cv2.BFMatcher()
         self.query = query
         self.mask = mask
+
         self.knn_matcher_ratio = knn_ratio
         self.min_match = min_match
+
         self.min_similarity = min_similarity
+
         self.min_scale = min_scale
         self.max_scale = max_scale
-        self.remove_features = remove_features
+        self.max_translation = max_translation
+        self.max_rotation = max_rotation
+
         self.pre_frame_num = pre_frame_num
         self.post_frame_num = post_frame_num
+
+        self.remove_features = remove_features
 
     @staticmethod
     def from_config(config):
@@ -53,9 +65,13 @@ class SiftQueryProcessor:
         image, query_mask = sift_image_and_mask_from_png(query_path)
         query_processor = SiftQueryProcessor(
             image, query_mask,
+            min_match=query_config.get('min_match', 5),
+            knn_ratio=query_config.get('knn_ratio', 0.5),
             min_similarity=query_config.get('min_similarity', None),
-            min_scale=query_config.get('min_scale', 0.01),
-            max_scale=query_config.get('max_scale', 100.0),
+            min_scale=query_config.get('min_scale', None),
+            max_scale=query_config.get('max_scale', None),
+            max_rotation=query_config.get('max_rotation', None),
+            max_translation=query_config.get('max_translation', None),
             pre_frame_num=query_config.get('pre_frame_num', 0),
             post_frame_num=query_config.get('post_frame_num', 0)
         )
@@ -80,13 +96,29 @@ class SiftQueryProcessor:
             return None
 
         affine = self.query.estimate_affine(target, matches)
+        skew, scale, rotation, translation = decompose_affine(affine)
 
-        scale = affine[0, 0] * affine[1, 1] - affine[0, 1] * affine[1, 0]
-        # scale check
-        if self.min_scale is not None and scale < self.min_scale:
-            return None
-        if self.max_scale is not None and scale > self.max_scale:
-            return None
+        if self.min_scale is not None:
+            if abs(scale[0]) < self.min_scale:
+                return None
+            if abs(scale[1]) < self.min_scale:
+                return None
+
+        if self.max_scale is not None:
+            if abs(scale[0]) > self.max_scale:
+                return None
+            if abs(scale[1]) > self.max_scale:
+                return None
+
+        if self.max_rotation is not None:
+            if abs(rotation) > self.max_rotation:
+                return None
+
+        if self.max_translation is not None:
+            if abs(translation[0]) > self.max_translation:
+                return None
+            if abs(translation[1]) > self.max_translation:
+                return None
 
         affine_query_image = self.query.wrap_affine(affine)
         affine_query_mask = wrap_affine(self.mask, affine)

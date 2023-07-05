@@ -61,9 +61,13 @@ zipp @ file:///home/conda/feedstock_root/build_artifacts/zipp_1677313463193/work
 
 * query
     * path 查询png图像路径
-    * min_similarity 最小图像颜色相似度，默认0
-    * min_scale 最小仿射变换比例，默认 0.01
-    * min_scale 最大仿射变换比例，默认 100.0
+    * min_match 最小命中数，默认 5
+    * knn_ratio 最近搜索限制比例，默认 0.5
+    * min_similarity 最小图像颜色相似度，默认 None
+    * min_scale 最小放缩比例，默认 None
+    * min_scale 最大放缩比例，默认 None
+    * min_translation 最大平移，默认 None
+    * min_rotation 最大旋转，默认 None
     * pre_frame_num 移除提前帧数, 默认 0
     * post_frame_num 移除延后帧数, 默认 0
 * remove
