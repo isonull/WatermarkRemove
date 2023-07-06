@@ -47,6 +47,10 @@ class RemoveProcessor:
                 strategy, inpaint_mask=query_mask, inpaint_radius=radius)
         elif strategy == 'COVER':
             image, cover_mask = image_and_mask_from_png(remove_config['path'])
+            cover_mask_erode_size = remove_config.get('cover_mask_erode', None)
+            if cover_mask_erode_size is not None:
+                kernel = np.ones([5, 5], np.uint8)
+                cover_mask = cv2.erode(cover_mask, kernel)
             remove_processor = RemoveProcessor(
                 strategy, cover_image=image, cover_mask=cover_mask)
         return remove_processor
